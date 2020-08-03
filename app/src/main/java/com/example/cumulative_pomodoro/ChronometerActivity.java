@@ -20,7 +20,7 @@ public class ChronometerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_chronometer);
 
 
-        final Chronometer chronometer = (Chronometer)findViewById(R.id.WorkTimer);
+        final Chronometer chronometer = (Chronometer)findViewById(R.id.Timer);
         final Chronometer breakChronometer = (Chronometer)findViewById(R.id.BreakTimer);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             breakChronometer.setCountDown(true);
