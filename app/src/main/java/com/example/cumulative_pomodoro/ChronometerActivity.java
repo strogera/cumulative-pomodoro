@@ -34,7 +34,30 @@ public class ChronometerActivity extends AppCompatActivity {
                 breakChronometer.setBase(breakDuration+(long)(deltaTime*0.2)+SystemClock.elapsedRealtime());
             }
         });
+        chronometer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (state==State.WORK) {
+                    chronometer.stop();
+                    breakChronometer.start();
+                    state = State.BREAK;
+                }
+                else if (state == State.BREAK){
+                    breakChronometer.stop();
+                    breakDuration = breakChronometer.getBase() - SystemClock.elapsedRealtime();
+                    chronometer.setBase(SystemClock.elapsedRealtime());
+                    chronometer.start();
+                    state=State.WORK;
+                }else if (state==State.OPEN){
+                    chronometer.setBase(SystemClock.elapsedRealtime());
+                    chronometer.start();
+                    state=State.WORK;
+                }
 
+
+            }
+        });
+        /*
         Button buttonStart = (Button)findViewById(R.id.buttonStartChronometer);
         buttonStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,7 +86,7 @@ public class ChronometerActivity extends AppCompatActivity {
                 state=State.BREAK;
             }
         });
-
+        */
         Button buttonReset = (Button)findViewById(R.id.buttonResetChronometer);
         buttonReset.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -74,6 +97,7 @@ public class ChronometerActivity extends AppCompatActivity {
                     breakChronometer.stop();
                 chronometer.setBase(SystemClock.elapsedRealtime());
                 breakChronometer.setBase(SystemClock.elapsedRealtime());
+                breakDuration=0;
                 state=State.OPEN;
 
             }

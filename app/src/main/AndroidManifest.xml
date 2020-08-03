@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.cumulative_pomodoro">
+    package="com.example.cumulative_pomodoro"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+
 
 
     <application
