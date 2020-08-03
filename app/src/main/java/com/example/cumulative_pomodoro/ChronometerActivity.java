@@ -10,13 +10,32 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.w3c.dom.Text;
+
 import java.util.concurrent.TimeUnit;
 
 public class ChronometerActivity extends AppCompatActivity {
     private long breakDuration=0, accumulatedBreak=0;
+    private long lastBreak=0;
     private enum State {PAUSE, WORK, BREAK};
     private State state= State.PAUSE;
+    private int statisticsWorkCounter=0, statisticsBreakCounter=0, statisticsWorkTime=0, statisticsBreakTime=0;
 
+    private String formatStatistics(){
+        long avrWorkTime=0;
+        long avrBreakTime=0;
+        if(statisticsWorkCounter!=0){
+            avrWorkTime=(long)statisticsWorkTime/statisticsWorkCounter;
+        }
+        if(statisticsBreakCounter!=0){
+            avrBreakTime=(long)statisticsBreakTime/statisticsBreakCounter;
+        }
+
+        return String.format("Work Sessions: %d, AvrWorkTime: %s, Breaks: %d, AvrBreakTime: %s", statisticsWorkCounter,
+                formatMillistoMMSS(avrWorkTime), statisticsBreakCounter,
+                formatMillistoMMSS(avrBreakTime));
+
+    }
     private String formatMillistoMMSS(long t){
         long minutes = Math.abs(t) /(1000 * 60);
         long seconds = Math.abs(t) / 1000 % 60;
@@ -35,9 +54,10 @@ public class ChronometerActivity extends AppCompatActivity {
         final TextView currentMode =  (TextView)findViewById(R.id.CurrentMode);
         final Chronometer chronometer = (Chronometer)findViewById(R.id.Timer);
         final TextView breakChronometer = (TextView)findViewById(R.id.BreakTimer);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-           // breakChronometer.setCountDown(true);
-        }
+        final TextView sessionInfo = (TextView)findViewById(R.id.SessionInfo);
+
+        sessionInfo.setText(formatStatistics());
+
         chronometer.setOnChronometerTickListener(new Chronometer.OnChronometerTickListener() {
             @Override
             public void onChronometerTick(Chronometer chronometer) {
@@ -53,15 +73,19 @@ public class ChronometerActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (state==State.WORK) {
                     chronometer.stop();
+                    long curTimeWorking=SystemClock.elapsedRealtime()-chronometer.getBase();
                     chronometer.setBase(breakDuration+SystemClock.elapsedRealtime());
+                    lastBreak=breakDuration;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         chronometer.setCountDown(true);
                     }
+                    state = State.BREAK;
                     chronometer.start();
 
-                    state = State.BREAK;
                     currentMode.setText("Break");
                     breakChronometer.setVisibility(View.INVISIBLE);
+                    statisticsWorkCounter++;
+                    statisticsWorkTime+=curTimeWorking;
                 }
                 else if (state == State.BREAK){
                     chronometer.stop();
@@ -76,7 +100,8 @@ public class ChronometerActivity extends AppCompatActivity {
                     currentMode.setText("Work");
                     breakChronometer.setText(formatMillistoMMSS(accumulatedBreak));
                     breakChronometer.setVisibility(View.VISIBLE);
-
+                    statisticsBreakCounter++;
+                    statisticsBreakTime+=Math.abs(lastBreak-accumulatedBreak);
                 }else if (state==State.PAUSE){
                     chronometer.setBase(SystemClock.elapsedRealtime());
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -89,6 +114,7 @@ public class ChronometerActivity extends AppCompatActivity {
                     breakChronometer.setVisibility(View.VISIBLE);
                     breakDuration=0;
                 }
+                sessionInfo.setText(formatStatistics());
             }
         });
 
@@ -108,6 +134,12 @@ public class ChronometerActivity extends AppCompatActivity {
 
                 currentMode.setText("Pause");
                 breakChronometer.setVisibility(View.VISIBLE);
+                statisticsWorkTime=0;
+                statisticsWorkCounter=0;
+                statisticsBreakTime=0;
+                statisticsBreakCounter=0;
+                sessionInfo.setText(formatStatistics());
+
             }
         });
 
