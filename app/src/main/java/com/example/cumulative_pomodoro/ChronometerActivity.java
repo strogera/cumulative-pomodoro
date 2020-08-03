@@ -6,20 +6,21 @@ import android.os.SystemClock;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Chronometer;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class ChronometerActivity extends AppCompatActivity {
     private long breakDuration=0;
-    private enum State {OPEN, WORK, BREAK};
-    private State state= State.OPEN;
+    private enum State {PAUSE, WORK, BREAK};
+    private State state= State.PAUSE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chronometer);
 
-
+        final TextView currentMode =  (TextView)findViewById(R.id.CurrentMode);
         final Chronometer chronometer = (Chronometer)findViewById(R.id.Timer);
         final Chronometer breakChronometer = (Chronometer)findViewById(R.id.BreakTimer);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -41,6 +42,7 @@ public class ChronometerActivity extends AppCompatActivity {
                     chronometer.stop();
                     breakChronometer.start();
                     state = State.BREAK;
+                    currentMode.setText("Break");
                 }
                 else if (state == State.BREAK){
                     breakChronometer.stop();
@@ -48,45 +50,21 @@ public class ChronometerActivity extends AppCompatActivity {
                     chronometer.setBase(SystemClock.elapsedRealtime());
                     chronometer.start();
                     state=State.WORK;
-                }else if (state==State.OPEN){
+                    currentMode.setText("Work");
+
+                }else if (state==State.PAUSE){
                     chronometer.setBase(SystemClock.elapsedRealtime());
                     chronometer.start();
                     state=State.WORK;
+                    currentMode.setText("Work");
+
+
                 }
 
 
             }
         });
-        /*
-        Button buttonStart = (Button)findViewById(R.id.buttonStartChronometer);
-        buttonStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (state==State.WORK)
-                    return;
-                if (state == State.BREAK){
-                    breakChronometer.stop();
-                    breakDuration = breakChronometer.getBase() - SystemClock.elapsedRealtime();
-                }
-                chronometer.setBase(SystemClock.elapsedRealtime());
-                chronometer.start();
-                state=State.WORK;
-            }
-        });
 
-        Button buttonStop = (Button)findViewById(R.id.buttonStopChronometer);
-        buttonStop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(state==State.BREAK)
-                    return;
-                else if (state==State.WORK)
-                    chronometer.stop();
-                breakChronometer.start();
-                state=State.BREAK;
-            }
-        });
-        */
         Button buttonReset = (Button)findViewById(R.id.buttonResetChronometer);
         buttonReset.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,7 +76,9 @@ public class ChronometerActivity extends AppCompatActivity {
                 chronometer.setBase(SystemClock.elapsedRealtime());
                 breakChronometer.setBase(SystemClock.elapsedRealtime());
                 breakDuration=0;
-                state=State.OPEN;
+                state=State.PAUSE;
+                currentMode.setText("Pause");
+
 
             }
         });
