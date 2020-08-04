@@ -32,17 +32,22 @@ public class ChronometerActivity extends AppCompatActivity {
         }
 
         return String.format("Work Sessions: %d, AvrWorkTime: %s, Breaks: %d, AvrBreakTime: %s", statisticsWorkCounter,
-                formatMillistoMMSS(avrWorkTime), statisticsBreakCounter,
-                formatMillistoMMSS(avrBreakTime));
+                formatMillistoHHMMSS(avrWorkTime), statisticsBreakCounter,
+                formatMillistoHHMMSS(avrBreakTime));
 
     }
-    private String formatMillistoMMSS(long t){
-        long minutes = Math.abs(t) /(1000 * 60);
-        long seconds = Math.abs(t) / 1000 % 60;
+    private String formatMillistoHHMMSS(long t){
+        long seconds = (Math.abs(t) / 1000) % 60;
+        long minutes = (Math.abs(t) /(1000 * 60)) % 60;
+        long hours = Math.abs(t) / ( 1000 * 60 * 60);
+        String hoursStr="";
+        if (hours!=0){
+            hoursStr=String.format("%02d:", hours);
+        }
         if(t<0){
-            return String.format("-%02d:%02d", Math.abs(minutes), Math.abs(seconds));
+            return String.format("-%s%02d:%02d", hoursStr, Math.abs(minutes), Math.abs(seconds));
         }else{
-            return String.format("%02d:%02d", minutes, seconds);
+            return String.format("%s%02d:%02d", hoursStr, minutes, seconds);
         }
     }
 
@@ -64,7 +69,7 @@ public class ChronometerActivity extends AppCompatActivity {
                 long deltaTime = SystemClock.elapsedRealtime() - chronometer.getBase();
                 if(state==State.WORK) {
                     breakDuration = accumulatedBreak + (long) (deltaTime * 0.2);// + SystemClock.elapsedRealtime();
-                    breakChronometer.setText(formatMillistoMMSS(breakDuration));
+                    breakChronometer.setText(formatMillistoHHMMSS(breakDuration));
                 }
             }
         });
@@ -98,7 +103,7 @@ public class ChronometerActivity extends AppCompatActivity {
                     chronometer.start();
 
                     currentMode.setText("Work");
-                    breakChronometer.setText(formatMillistoMMSS(accumulatedBreak));
+                    breakChronometer.setText(formatMillistoHHMMSS(accumulatedBreak));
                     breakChronometer.setVisibility(View.VISIBLE);
                     statisticsBreakCounter++;
                     statisticsBreakTime+=Math.abs(lastBreak-accumulatedBreak);
@@ -127,7 +132,7 @@ public class ChronometerActivity extends AppCompatActivity {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     chronometer.setCountDown(false);
                 }
-                breakChronometer.setText(formatMillistoMMSS(0));
+                breakChronometer.setText(formatMillistoHHMMSS(0));
                 breakDuration=0;
                 accumulatedBreak=0;
                 state=State.PAUSE;
