@@ -1,18 +1,27 @@
 package com.example.cumulative_pomodoro;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.MediaPlayer;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import org.w3c.dom.Text;
-
-import java.util.concurrent.TimeUnit;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 public class ChronometerActivity extends AppCompatActivity {
     private long breakDuration=0, accumulatedBreak=0;
@@ -70,6 +79,10 @@ public class ChronometerActivity extends AppCompatActivity {
                 if(state==State.WORK) {
                     breakDuration = accumulatedBreak + (long) (deltaTime * 0.2);// + SystemClock.elapsedRealtime();
                     breakChronometer.setText(formatMillistoHHMMSS(breakDuration));
+                }else if (state==State.BREAK){
+                    if(Math.abs(deltaTime/500)==0){
+                        sendNotification("Break is up", "Time for work");
+                    }
                 }
             }
         });
@@ -127,6 +140,7 @@ public class ChronometerActivity extends AppCompatActivity {
         buttonReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                state=State.PAUSE;
                 chronometer.stop();
                 chronometer.setBase(SystemClock.elapsedRealtime());
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -135,7 +149,6 @@ public class ChronometerActivity extends AppCompatActivity {
                 breakChronometer.setText(formatMillistoHHMMSS(0));
                 breakDuration=0;
                 accumulatedBreak=0;
-                state=State.PAUSE;
 
                 currentMode.setText("Pause");
                 breakChronometer.setVisibility(View.VISIBLE);
@@ -147,6 +160,54 @@ public class ChronometerActivity extends AppCompatActivity {
 
             }
         });
+
+    }
+
+    protected void sendNotification(String title, String message) {
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        //Uri alarmSound = Settings.System.DEFAULT_NOTIFICATION_URI;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                NotificationChannel channel = new NotificationChannel("YOUR_CHANNEL_ID",
+                        "End of Break",
+                        NotificationManager.IMPORTANCE_DEFAULT);
+    //            channel.setDescription("YOUR_NOTIFICATION_CHANNEL_DESCRIPTION");
+/*
+                if(alarmSound != null) {
+                    AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .setUsage(AudioAttributes.USAGE_ALARM)
+                            .build();
+                    channel.setSound(alarmSound, audioAttributes);
+                }
+
+ */
+            channel.setBypassDnd(true);
+            channel.setSound(null, null);
+            mNotificationManager.createNotificationChannel(channel);
+        }
+            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), "YOUR_CHANNEL_ID")
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setCategory(NotificationCompat.CATEGORY_ALARM)
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setAutoCancel(true);
+            Intent intent = new Intent(getApplicationContext(), ChronometerActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            PendingIntent pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            //mBuilder.setDefaults(Notification.DEFAULT_SOUND);
+
+            mBuilder.setOnlyAlertOnce(true);
+            //mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
+            mBuilder.setContentIntent(pi);
+            //mBuilder.setSound(alarmSound);
+            mNotificationManager.notify(0, mBuilder.build());
+            final MediaPlayer mp = MediaPlayer.create(this, alarmSound);
+            mp.setLooping(false);
+            mp.start();
 
     }
 }
