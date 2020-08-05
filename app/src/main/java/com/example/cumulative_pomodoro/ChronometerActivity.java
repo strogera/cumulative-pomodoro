@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
@@ -21,7 +22,9 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Chronometer;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -84,6 +87,8 @@ public class ChronometerActivity extends AppCompatActivity {
         sessionInfo.setVisibility(View.INVISIBLE);
         Button buttonReset = (Button)findViewById(R.id.buttonResetChronometer);
         buttonReset.setVisibility(View.INVISIBLE);
+        Switch darkmode = (Switch)findViewById(R.id.DarkMode);
+        darkmode.setVisibility(View.INVISIBLE);
     }
 
     private void showSystemUI() {
@@ -97,6 +102,8 @@ public class ChronometerActivity extends AppCompatActivity {
         sessionInfo.setVisibility(View.VISIBLE);
         Button buttonReset = (Button)findViewById(R.id.buttonResetChronometer);
         buttonReset.setVisibility(View.VISIBLE);
+        Switch darkmode = (Switch)findViewById(R.id.DarkMode);
+        darkmode.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -109,6 +116,20 @@ public class ChronometerActivity extends AppCompatActivity {
         final TextView breakChronometer = (TextView)findViewById(R.id.BreakTimer);
         final TextView sessionInfo = (TextView)findViewById(R.id.SessionInfo);
         final ConstraintLayout layout= (ConstraintLayout)findViewById(R.id.ConstraintLayout);
+        final Switch darkMode=(Switch)findViewById(R.id.DarkMode);
+        darkMode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    layout.setBackgroundColor(Color.parseColor("#000000"));
+                    chronometer.setTextColor(Color.parseColor("#ffffff"));
+                    breakChronometer.setTextColor(Color.parseColor("#ffffff"));
+                } else {
+                    layout.setBackgroundColor(Color.parseColor("#ffffff"));
+                    chronometer.setTextColor(Color.parseColor("#000000"));
+                    breakChronometer.setTextColor(Color.parseColor("#000000"));
+                }
+            }
+        });
 
         layout.setOnTouchListener(new ConstraintLayout.OnTouchListener() {
             private GestureDetector gestureDetector = new GestureDetector(ChronometerActivity.this, new GestureDetector.SimpleOnGestureListener() {
